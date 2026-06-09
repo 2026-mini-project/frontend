@@ -1,0 +1,17 @@
+@font-face {
+    font-family: 'Pretendard';
+    src: url("/PretendardVariable.ttf") format('truetype');
+}
+
+* {
+    font-family: 'Pretendard';
+}
+
+html,
+body {
+    margin: 0;
+    width: 100vw;
+    height: 100dvh;
+
+    background-color: #333333;
+}
