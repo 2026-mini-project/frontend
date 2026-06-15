@@ -15,13 +15,11 @@ body {
     height: 100dvh;
 
     background: linear-gradient(242deg, #1e1e1e, #212121);
+    overflow: hidden;
 }
 
 body,
 #root {
-    min-height: 100dvh;
-}
-
-a {
-    color: inherit;
+    width: 100%;
+    height: 100%;
 }
