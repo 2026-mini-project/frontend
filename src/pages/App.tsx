@@ -6,6 +6,7 @@ import { animated, easings, useSpringValue } from '@react-spring/web';
 export default function Page() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFetching, setIsFetching] = useState(false);
+    const [needRedirect, setNeedRedirect] = useState(false);
     const [error, setError] = useState<string>();
 
     const opacity = useSpringValue(1, {
@@ -34,7 +35,11 @@ export default function Page() {
     }, [isFetching]);
 
     return <>
-        <Transition hide={isLoading} />
+        <Transition hide={isLoading} onAnimationEnd={() => {
+            if (!needRedirect) return;
+
+            location.href = "/rooms";
+        }} />
         <animated.div className={css.form} style={{
             opacity,
             "pointerEvents": isFetching ? "none" : "auto"
@@ -51,7 +56,8 @@ export default function Page() {
                     setIsFetching(true);
                     // 서버에 세션 ID 요청
 
-                    location.href = "/rooms";
+                    setNeedRedirect(true);
+                    setIsLoading(true);
                 } catch (err) {
                     setError((err as Error).message);
                     setIsFetching(false);
