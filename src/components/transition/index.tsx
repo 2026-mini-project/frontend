@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import css from './styles.module.css';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { animated, easings, useSpringValue } from '@react-spring/web';
 
 type Props = {
@@ -14,6 +14,7 @@ const AnimatedFA = animated(FontAwesomeIcon);
 
 export default function Transition(props: Props) {
     const { hide, loading, onAnimationEnd } = props;
+    const [doNotRender, setDoNotRender] = useState(false);
 
     const containerOpacity = useSpringValue(hide ? 1 : 0, {
         "config": {
@@ -29,20 +30,32 @@ export default function Transition(props: Props) {
     });
 
     useEffect(() => {
-        if (hide) {
-            containerOpacity.start(1).then(onAnimationEnd);
-        } else {
-            containerOpacity.start(0).then(onAnimationEnd);
-        }
+        (async () => {
+            if (hide) {
+                setDoNotRender(false);
+                await containerOpacity.start(1);
+            } else {
+                await containerOpacity.start(0);
+                setDoNotRender(true);
+            }
+
+            onAnimationEnd?.();
+        })();
     }, [hide]);
 
     useEffect(() => {
-        if (loading) {
-            loadingOpacity.start(1).then(onAnimationEnd);
-        } else {
-            loadingOpacity.start(0).then(onAnimationEnd);
-        }
+        (async () => {
+            if (loading) {
+                await loadingOpacity.start(1);
+            } else {
+                await loadingOpacity.start(0);
+            }
+
+            onAnimationEnd?.();
+        })();
     }, [loading]);
+
+    if (doNotRender) return null;
 
     return <animated.div
         className={css.container}
