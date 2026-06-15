@@ -1,8 +1,7 @@
-import css from './App.module.css';
+export default function Page() {
+    return <>
+        <div>
 
-export default function App() {
-    
-    return <div>
-
-    </div>;
+        </div>
+    </>;
 }
