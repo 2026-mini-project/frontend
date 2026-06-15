@@ -1,6 +1,5 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import css from './styles.module.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { animated, easings, useSpringValue } from '@react-spring/web';
 
 type Props = {
@@ -10,9 +9,10 @@ type Props = {
 
 export default function Transition(props: Props) {
     const { hide, onAnimationEnd } = props;
-    const [doNotRender, setDoNotRender] = useState(false);
+    const [doNotRender, setDoNotRender] = useState(!hide);
+    const isFirstRender = useRef(true);
 
-    const containerOpacity = useSpringValue(hide ? 1 : 0, {
+    const panelX = useSpringValue(hide ? '-18vw' : '115vw', {
         "config": {
             "duration": 480,
             "easing": easings.easeInOutCubic
@@ -23,12 +23,18 @@ export default function Transition(props: Props) {
         (async () => {
             if (hide) {
                 setDoNotRender(false);
-                await containerOpacity.start(1);
+                if (isFirstRender.current) {
+                    panelX.set('-18vw');
+                } else {
+                    panelX.set('115vw');
+                    await panelX.start('-18vw');
+                }
             } else {
-                await containerOpacity.start(0);
+                await panelX.start('115vw');
                 setDoNotRender(true);
             }
 
+            isFirstRender.current = false;
             onAnimationEnd?.();
         })();
     }, [hide]);
@@ -37,6 +43,6 @@ export default function Transition(props: Props) {
 
     return <animated.div
         className={css.container}
-        style={{ "opacity": containerOpacity }}
+        style={{ "transform": panelX.to(x => `translateX(${x})`) }}
     />;
 }
