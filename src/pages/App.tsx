@@ -1,13 +1,15 @@
 import css from './App.module.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Transition from '../components/transition';
 import { animated, easings, useSpringValue } from '@react-spring/web';
+import REST from '../modules/rest';
 
 export default function Page() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFetching, setIsFetching] = useState(false);
     const [needRedirect, setNeedRedirect] = useState(false);
     const [error, setError] = useState<string>();
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const opacity = useSpringValue(1, {
         "config": {
@@ -18,8 +20,11 @@ export default function Page() {
 
     useEffect(() => {
         (async () => {
-            // 여기에 GET /
-            await new Promise(r => setTimeout(r, 1000));
+            const r = await REST("/");
+            if (!r.success) {
+                alert("현재 서버를 사용할 수 없습니다.\n나중에 다시 시도 해주세요.");
+                return;
+            }
             setIsLoading(false);
         })();
     }, []);
@@ -49,12 +54,28 @@ export default function Page() {
                 <span className={css.title}>환영합니다!</span>
             </div>
             <span className={css.desc}>사용할 닉네임을 입력해주세요.</span>
-            <input className={css.input} type="text" placeholder="닉네임 입력" />
+            <input className={css.input} type="text" placeholder="닉네임 입력" ref={inputRef} />
             {error && <span className={css.desc} style={{ "color": "#d00" }}>{error}</span>}
             <button className={css.button} onClick={async () => {
                 try {
+                    if (!inputRef.current) {
+                        return window.location.reload();
+                    }
+                    const { value } = inputRef.current;
+                    if (!value) throw new Error("닉네임을 입력해주세요.");
+                    if (value.length < 4) throw new Error("닉네임은 4글자 이상 입력해주세요.");
+
                     setIsFetching(true);
-                    // 서버에 세션 ID 요청
+
+                    const r = await REST("/session", {
+                        "method": "POST",
+                        "data": {
+                            "name": value
+                        }
+                    });
+                    if (!r.success) throw new Error(r.data.message);
+
+                    console.log(r.data);
 
                     setNeedRedirect(true);
                     setIsLoading(true);
