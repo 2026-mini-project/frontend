@@ -55,7 +55,14 @@ export default function Page() {
                 <span className={css.title}>환영합니다!</span>
             </div>
             <span className={css.desc}>사용할 닉네임을 입력해주세요.</span>
-            <input className={css.input} type="text" placeholder="닉네임 입력" ref={inputRef} onKeyDown={(ev) => (ev.key === "Enter" && buttonRef.current) && buttonRef.current.click()} />
+            <input
+                className={css.input}
+                type="text"
+                placeholder="닉네임 입력"
+                ref={inputRef}
+                onKeyDown={(ev) => (ev.key === "Enter" && buttonRef.current) && buttonRef.current.click()}
+                defaultValue={localStorage.getItem("name") ?? undefined}
+            />
             {error && <span className={css.desc} style={{ "color": "#d00" }}>{error}</span>}
             <button className={css.button} ref={buttonRef} onClick={async () => {
                 try {
