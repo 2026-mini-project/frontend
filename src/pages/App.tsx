@@ -10,6 +10,7 @@ export default function Page() {
     const [needRedirect, setNeedRedirect] = useState(false);
     const [error, setError] = useState<string>();
     const inputRef = useRef<HTMLInputElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
     const opacity = useSpringValue(1, {
         "config": {
@@ -54,9 +55,9 @@ export default function Page() {
                 <span className={css.title}>환영합니다!</span>
             </div>
             <span className={css.desc}>사용할 닉네임을 입력해주세요.</span>
-            <input className={css.input} type="text" placeholder="닉네임 입력" ref={inputRef} />
+            <input className={css.input} type="text" placeholder="닉네임 입력" ref={inputRef} onKeyDown={(ev) => (ev.key === "Enter" && buttonRef.current) && buttonRef.current.click()} />
             {error && <span className={css.desc} style={{ "color": "#d00" }}>{error}</span>}
-            <button className={css.button} onClick={async () => {
+            <button className={css.button} ref={buttonRef} onClick={async () => {
                 try {
                     if (!inputRef.current) {
                         return window.location.reload();
@@ -67,7 +68,7 @@ export default function Page() {
 
                     setIsFetching(true);
 
-                    const r = await REST("/session", {
+                    const r = await REST<APIUser>("/session", {
                         "method": "POST",
                         "data": {
                             "name": value
@@ -75,7 +76,8 @@ export default function Page() {
                     });
                     if (!r.success) throw new Error(r.data.message);
 
-                    console.log(r.data);
+                    localStorage.setItem("sessionId", r.data.id);
+                    localStorage.setItem("name", r.data.name);
 
                     setNeedRedirect(true);
                     setIsLoading(true);
