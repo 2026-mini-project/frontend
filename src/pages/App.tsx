@@ -85,6 +85,7 @@ export default function Page() {
 
                     localStorage.setItem("sessionId", r.data.id);
                     localStorage.setItem("name", r.data.name);
+                    localStorage.setItem("loginTime", String(Date.now()));
 
                     setNeedRedirect(true);
                     setIsLoading(true);
