@@ -7,5 +7,5 @@
     background: #000;
     clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
     will-change: transform;
-    z-index: 100;
+    z-index: 10000;
 }
