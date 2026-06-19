@@ -4,6 +4,7 @@ import css from './App.module.css';
 import REST from '../../modules/rest';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
+import Form from '../../components/form';
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
@@ -30,6 +31,14 @@ export default function Page() {
     }, []);
 
     return <>
+        <Form
+            show
+            title="asdf"
+            description='asfd'
+            inputs={["a"]}
+            onSubmit={(data) => console.log(data)}
+            onCancel={() => { }}
+        />
         <Transition hide={loading} onAnimationEnd={() => {
             if (!needToRedirect) return;
 
