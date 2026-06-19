@@ -5,3 +5,56 @@
     flex-direction: column;
     padding: 23px;
 }
+
+.header {
+    width: 100%;
+    height: 45px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+}
+
+.header .content {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    background-color: #0e0e0e;
+    box-shadow: 8px 8px 35px 0px rgba(0, 0, 0, 0.45);
+    -webkit-box-shadow: 8px 8px 35px 0px rgba(0, 0, 0, 0.45);
+    -moz-box-shadow: 8px 8px 35px 0px rgba(0, 0, 0, 0.45);
+    border: #ffffff77 solid 1.5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: #fff;
+    padding: 0 15px;
+}
+
+.header .createRoom {
+    border-radius: 15px;
+    background-color: #0e0e0e;
+    box-shadow: 8px 8px 35px 0px rgba(0, 0, 0, 0.45);
+    -webkit-box-shadow: 8px 8px 35px 0px rgba(0, 0, 0, 0.45);
+    -moz-box-shadow: 8px 8px 35px 0px rgba(0, 0, 0, 0.45);
+    border: #ffffff77 solid 1.5px;
+    padding: 0 7px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 130px;
+    color: #fff;
+    will-change: transform;
+    transition-property: transform;
+    transition-duration: .2s;
+    cursor: pointer;
+}
+
+.header .createRoom:hover {
+    transform: translateY(-5px);
+}
+
+.header .createRoom span {
+    font-size: .98rem;
+}
