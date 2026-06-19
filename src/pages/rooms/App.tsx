@@ -33,12 +33,24 @@ export default function Page() {
         <div className={css.container}>
             <div className={css.header}>
                 <div className={css.content}>
-                    <span>당신의 닉네임: {localStorage.getItem("name")}</span>
+                    <span>당신의 닉네임:&nbsp;</span>
+                    <b>{localStorage.getItem("name")}</b>
                 </div>
                 <button className={css.createRoom}>
                     <FontAwesomeIcon icon={faPlay} />
                     <span>방 만들기</span>
                 </button>
+            </div>
+            <div className={css.roomList}>
+                {rooms.map(v => <a
+                    key={v.id}
+                    className={css.room}
+                    href={`/rooms/${v.id}`}
+                    style={v.full ? { "pointerEvents": "none", "opacity": 0.5 } : {}}
+                >
+                    <span className={css.name}>{v.name}</span>
+                    <span className={css.owner}>소유자: {v.owner}</span>
+                </a>)}
             </div>
         </div>
     </>;
