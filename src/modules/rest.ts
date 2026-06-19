@@ -26,8 +26,28 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
             const now = Date.now();
             const expiresAt = loginTime + (EXPIRES_IN * 1000);
 
-            if (now >= expiresAt) {
+            if (!isNaN(loginTime) && now >= expiresAt) {
+                const r = await axios.post<APIUser | APIError>(`${API_BASE}/session/refresh`, {}, {
+                    "headers": {
+                        "Authorization": sessionId
+                    },
+                    "validateStatus": () => true
+                });
+                if (r.status !== 200) {
+                    const data = r.data as APIError;
+                    return {
+                        "success": false,
+                        data,
+                        "status": r.status
+                    };
+                }
+                const data = r.data as APIUser;
                 
+                localStorage.setItem("sessionId", data.id);
+                localStorage.setItem("nickname", data.name);
+                localStorage.setItem("loginTime", String(Date.now()));
+
+                return await REST<T, D>(route, config);
             }
         }
 
