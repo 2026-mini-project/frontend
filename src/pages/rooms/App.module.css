@@ -100,3 +100,26 @@
     color: #888;
     font-size: .98rem;
 }
+
+.logout {
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.logout svg {
+    font-size: 1.1rem;
+    color: #888;
+    will-change: color;
+    transition-property: color;
+    transition-duration: .2s;
+}
+
+.logout:hover svg {
+    color: #fff;
+}

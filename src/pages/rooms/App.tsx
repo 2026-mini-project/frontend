@@ -3,10 +3,11 @@ import Transition from '../../components/transition';
 import css from './App.module.css';
 import REST from '../../modules/rest';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
+    const [needToRedirect, setNeedToRedirect] = useState(false);
     const [rooms, setRooms] = useState<APIRoom[]>([]);
 
     useEffect(() => {
@@ -29,12 +30,38 @@ export default function Page() {
     }, []);
 
     return <>
-        <Transition hide={loading} />
+        <Transition hide={loading} onAnimationEnd={() => {
+            if (!needToRedirect) return;
+
+            window.location.href = "/";
+        }} />
         <div className={css.container}>
             <div className={css.header}>
                 <div className={css.content}>
                     <span>당신의 닉네임:&nbsp;</span>
                     <b>{localStorage.getItem("name")}</b>
+                    <button className={css.logout} onClick={async () => {
+                        try {
+                            const r = await REST("/session", {
+                                "method": "DELETE"
+                            });
+                            if (!r.success) {
+                                alert(r.data.message);
+                                return;
+                            }
+
+                            localStorage.removeItem("sessionId");
+                            localStorage.removeItem("name");
+                            localStorage.removeItem("loginTime");
+
+                            setLoading(true);
+                            setNeedToRedirect(true);
+                        } catch (err) {
+                            alert((err as Error).message);
+                        }
+                    }}>
+                        <FontAwesomeIcon icon={faDoorOpen} />
+                    </button>
                 </div>
                 <button className={css.createRoom}>
                     <FontAwesomeIcon icon={faPlay} />

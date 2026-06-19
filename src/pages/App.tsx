@@ -73,6 +73,12 @@ export default function Page() {
                     if (!value) throw new Error("닉네임을 입력해주세요.");
                     if (value.length < 4) throw new Error("닉네임은 4글자 이상 입력해주세요.");
 
+                    if (value == localStorage.getItem("name")) {
+                        setNeedRedirect(true);
+                        setIsLoading(true);
+                        return;
+                    }
+
                     setIsFetching(true);
 
                     const r = await REST<APIUser>("/session", {

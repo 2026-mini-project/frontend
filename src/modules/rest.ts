@@ -17,7 +17,7 @@ type Resp<T> = RespTrue<T> | RespFalse;
 const API_BASE = "https://miniproj.pro203s.kr";
 const EXPIRES_IN = 3600;
 
-export default async function REST<T = any, D = any>(route: string, config?: Omit<AxiosRequestConfig<D>, "validateStatus" | "url">): Promise<Resp<T>> {
+export default async function REST<T = any, D = any>(route: string, config?: Omit<AxiosRequestConfig<D>, "validateStatus" | "url"> & { "doNotRefresh"?: boolean }): Promise<Resp<T>> {
     try {
         const sessionId = localStorage.getItem("sessionId");
 
@@ -26,7 +26,7 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
             const now = Date.now();
             const expiresAt = loginTime + (EXPIRES_IN * 1000);
 
-            if (!isNaN(loginTime) && now >= expiresAt) {
+            if (!isNaN(loginTime) && now >= expiresAt && !config?.doNotRefresh) {
                 const r = await axios.post<APIUser | APIError>(`${API_BASE}/session/refresh`, {}, {
                     "headers": {
                         "Authorization": sessionId
@@ -35,6 +35,7 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
                 });
                 if (r.status !== 200) {
                     const data = r.data as APIError;
+
                     return {
                         "success": false,
                         data,
@@ -42,9 +43,9 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
                     };
                 }
                 const data = r.data as APIUser;
-                
+
                 localStorage.setItem("sessionId", data.id);
-                localStorage.setItem("nickname", data.name);
+                localStorage.setItem("name", data.name);
                 localStorage.setItem("loginTime", String(Date.now()));
 
                 return await REST<T, D>(route, config);
@@ -63,6 +64,12 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
         });
 
         if (Math.floor(r.status / 100) !== 2) {
+            if (r.status === 401) {
+                localStorage.removeItem("sessionId");
+                localStorage.removeItem("name");
+                localStorage.removeItem("loginTime");
+            }
+            
             return {
                 "success": false,
                 "data": r.data,
