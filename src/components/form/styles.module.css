@@ -35,9 +35,9 @@
 }
 
 .form .icon {
-    width: 1.67rem;
-    height: 1.67rem;
+    font-size: 1.27rem;
     margin: auto 0;
+    color: #fff;
 }
 
 .form .title {

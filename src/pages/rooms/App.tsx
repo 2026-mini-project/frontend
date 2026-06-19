@@ -5,11 +5,13 @@ import REST from '../../modules/rest';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
 import Form from '../../components/form';
+import { Link } from 'react-router-dom';
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
     const [needToRedirect, setNeedToRedirect] = useState(false);
     const [rooms, setRooms] = useState<APIRoom[]>([]);
+    const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -32,12 +34,15 @@ export default function Page() {
 
     return <>
         <Form
-            show
-            title="asdf"
-            description='asfd'
+            show={showForm}
+            icon={faPlay}
+            title="방 만들기"
+            description='방 이름을 입력해 새롭게 방을 만들어요.'
+            placeholder='방 이름'
             inputs={["a"]}
             onSubmit={(data) => console.log(data)}
-            onCancel={() => { }}
+            onCancel={() => setShowForm(false)}
+            submitText="방 만들기"
         />
         <Transition hide={loading} onAnimationEnd={() => {
             if (!needToRedirect) return;
@@ -72,21 +77,21 @@ export default function Page() {
                         <FontAwesomeIcon icon={faDoorOpen} />
                     </button>
                 </div>
-                <button className={css.createRoom}>
+                <button className={css.createRoom} onClick={() => setShowForm(true)}>
                     <FontAwesomeIcon icon={faPlay} />
                     <span>방 만들기</span>
                 </button>
             </div>
             <div className={css.roomList}>
-                {rooms.map(v => <a
+                {rooms.map(v => <Link
                     key={v.id}
                     className={css.room}
-                    href={`/rooms/${v.id}`}
+                    to={`/rooms/${v.id}`}
                     style={v.full ? { "pointerEvents": "none", "opacity": 0.5 } : {}}
                 >
                     <span className={css.name}>{v.name}</span>
                     <span className={css.owner}>소유자: {v.owner}</span>
-                </a>)}
+                </Link>)}
             </div>
         </div>
     </>;
