@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Transition from '../../components/transition';
 import css from './App.module.css';
-import REST from '../../modules/rest';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
 import Form from '../../components/form';
@@ -39,8 +38,28 @@ export default function Page() {
             title="방 만들기"
             description='방 이름을 입력해 새롭게 방을 만들어요.'
             placeholder='방 이름'
-            inputs={["a"]}
-            onSubmit={(data) => console.log(data)}
+            checkboxLabel='비밀방으로 만들기'
+            onSubmit={async (data, checked) => {
+                setShowForm(false);
+                try {
+                    const r = await REST<APIRoom>("/rooms", {
+                        "method": "POST",
+                        "data": {
+                            "name": data,
+                            "private": checked
+                        },
+                        "headers": {
+                            "Content-Type": "application/json"
+                        }
+                    });
+                    if (!r.success) throw new Error(`방 만들기에 실패했습니다. (${r.status})`);
+
+                    window.location.href = `/rooms/${r.data.id}`;
+                } catch (err) {
+                    alert((err as Error).message);
+                    return window.location.reload();
+                }
+            }}
             onCancel={() => setShowForm(false)}
             submitText="방 만들기"
         />

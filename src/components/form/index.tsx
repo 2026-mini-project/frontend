@@ -10,15 +10,18 @@ type Props = {
     "icon": IconDefinition,
     "description": string,
     "placeholder": string,
+    "checkboxLabel"?: string,
+    "checkboxDefaultChecked"?: boolean,
     "onCancel": () => any,
-    "onSubmit": (data: string) => any,
+    "onSubmit": (data: string, checked: boolean) => any,
     "submitText": string,
     "show": boolean
 };
 
 export default function Form(props: Props) {
-    const { title, icon, description, placeholder, onCancel, onSubmit, submitText, show } = props;
+    const { title, icon, description, placeholder, checkboxLabel, checkboxDefaultChecked = false, onCancel, onSubmit, submitText, show } = props;
     const inputRef = useRef<HTMLInputElement>(null);
+    const checkboxRef = useRef<HTMLInputElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
     const opacity = useSpringValue(0, {
@@ -60,10 +63,19 @@ export default function Form(props: Props) {
                 ref={inputRef}
                 onKeyDown={(ev) => ev.key === "Enter" && buttonRef.current && buttonRef.current.click()}
             />
+            {checkboxLabel && <label className={css.checkboxRow}>
+                <input
+                    className={css.checkbox}
+                    type="checkbox"
+                    ref={checkboxRef}
+                    defaultChecked={checkboxDefaultChecked}
+                />
+                <span>{checkboxLabel}</span>
+            </label>}
             <button className={css.button} ref={buttonRef} onClick={() => {
                 if (!inputRef.current) return window.location.reload();
 
-                onSubmit(inputRef.current.value ?? "");
+                onSubmit(inputRef.current.value ?? "", checkboxRef.current?.checked ?? checkboxDefaultChecked);
             }}>{submitText}</button>
         </InOutAnimation>
     </animated.div>;
