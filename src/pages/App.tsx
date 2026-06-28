@@ -2,7 +2,7 @@ import css from './App.module.css';
 import { useEffect, useRef, useState } from 'react';
 import Transition from '../components/transition';
 import { animated, easings, useSpringValue } from '@react-spring/web';
-import REST from '../modules/rest';
+import REST from '../modules/rest.ts';
 
 export default function Page() {
     const [isLoading, setIsLoading] = useState(true);

@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
 import Form from '../../components/form';
 import { Link } from 'react-router-dom';
+import REST from '../../modules/rest';
 
 export default function Page() {
     const [loading, setLoading] = useState(true);
