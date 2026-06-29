@@ -4,6 +4,7 @@ import './index.css';
 import { default as MainPage } from './pages/App';
 import { default as GamePage } from './pages/game/App';
 import { default as RoomsPage } from './pages/rooms/App';
+import { default as RoomPage } from './pages/rooms/id/App';
 
 createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
@@ -11,6 +12,7 @@ createRoot(document.getElementById('root')!).render(
             <Route element={<MainPage />} path="/" />
             <Route element={<GamePage />} path="/game" />
             <Route element={<RoomsPage />} path="/rooms" />
+            <Route element={<RoomPage />} path="/rooms/:id" />
         </Routes>
     </BrowserRouter>,
 );
