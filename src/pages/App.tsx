@@ -26,6 +26,15 @@ export default function Page() {
                 alert("현재 서버를 사용할 수 없습니다.\n나중에 다시 시도 해주세요.");
                 return;
             }
+
+            if (localStorage.getItem("sessionId")) {
+                const r2 = await REST("/rooms");
+                if (r2.success) {
+                    window.location.href = "/rooms";
+                    return;
+                }
+            }
+
             setIsLoading(false);
         })();
     }, []);
