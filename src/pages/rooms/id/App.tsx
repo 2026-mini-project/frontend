@@ -1,32 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Transition from '../../../components/transition';
 import css from './App.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 import { useParams } from 'react-router-dom';
 import REST from '../../../modules/rest';
+import WebSocket from '../../../modules/WebSocket';
 
 export default function Page() {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [room, setRoom] = useState<APIRoom>();
+    const socket = useRef<WebSocket>(new WebSocket());
+    const interval = useRef<number>(-1);
 
     useEffect(() => {
         (async () => {
             const r = await REST<APIRoom>("/rooms/" + id);
             if (!r.success) {
-                if (r.status === 404) {
-                    setLoading(false);
-                    return;
-                }
-
                 alert(r.data.message);
                 return window.history.back();
             }
 
             setRoom(r.data);
-            setLoading(false);
+
+            socket.current = new WebSocket();
+
+            socket.current.on("error", () => {
+                alert("서버와의 연결에 오류가 발생했습니다.");
+                window.location.href = "/";
+            });
+            socket.current.on("disconnect", (ev) => {
+                alert(`서버와의 연결이 끊어졌습니다. (${ev.code})`);
+                window.location.href = "/";
+            });
+            socket.current.on("connected", async () => {
+                const sessionId = localStorage.getItem("sessionId");
+                if (!sessionId) {
+                    alert("세션 데이터를 찾을 수 없습니다.");
+                    window.location.href = "/";
+                    return;
+                }
+
+                await socket.current.send([
+                    "identify",
+                    {
+                        sessionId
+                    }
+                ]);
+            });
+            socket.current.on("message", (data) => {
+                const [op, payload] = data;
+
+                if (op === "welcome") {
+                    interval.current = setInterval(async () => {
+                        await socket.current.send(["ping"]);
+                    }, payload.pingInterval);
+                }
+            });
+
+            await socket.current.connect();
         })();
+
+        return () => clearInterval(interval.current);
     }, []);
 
     return <>
