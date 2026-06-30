@@ -31,7 +31,7 @@ export default function Page() {
                 window.location.href = "/";
             });
             socket.current.on("disconnect", (ev) => {
-                alert(`서버와의 연결이 끊어졌습니다. (${ev.code})`);
+                alert(`서버와의 연결이 끊어졌습니다. (${ev.code} ${ev.reason})`);
                 window.location.href = "/";
             });
             socket.current.on("connected", async () => {
