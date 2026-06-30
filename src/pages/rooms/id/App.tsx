@@ -41,7 +41,7 @@ export default function Page() {
                     setLoading(true);
                     await new Promise(r => setTimeout(r, 480));
 
-                    window.location.href = "/";
+                    window.location.href = "/rooms";
                 }}>
                     <FontAwesomeIcon icon={faDoorOpen} />
                     <span>방 나가기</span>

@@ -103,15 +103,19 @@ export default function Page() {
                 </button>
             </div>
             <div className={css.roomList}>
-                {rooms.map(v => <Link
+                {rooms.map(v => <button
                     key={v.id}
                     className={css.room}
-                    to={`/rooms/${v.id}`}
                     style={v.full ? { "pointerEvents": "none", "opacity": 0.5 } : {}}
+                    onClick={async () => {
+                        setLoading(true);
+                        await new Promise(r => setTimeout(r, 480));
+                        window.location.href = `/rooms/${v.id}`
+                    }}
                 >
                     <span className={css.name}>{v.name}</span>
                     <span className={css.owner}>소유자: {v.owner}</span>
-                </Link>)}
+                </button>)}
             </div>
         </div>
     </>;
