@@ -21,7 +21,7 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
     try {
         const sessionId = localStorage.getItem("sessionId");
 
-        if (sessionId && route !== "/") {
+        if (sessionId) {
             const loginTime = Number(localStorage.getItem("loginTime"));
             const now = Date.now();
             const expiresAt = loginTime + (EXPIRES_IN * 1000);
@@ -35,6 +35,10 @@ export default async function REST<T = any, D = any>(route: string, config?: Omi
                 });
                 if (r.status !== 200) {
                     const data = r.data as APIError;
+
+                    localStorage.removeItem("sessionId");
+                    localStorage.removeItem("name");
+                    localStorage.removeItem("loginTime");
 
                     return {
                         "success": false,
