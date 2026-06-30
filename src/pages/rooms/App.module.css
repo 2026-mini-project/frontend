@@ -79,7 +79,7 @@
     flex-direction: column;
     gap: 3px;
     color: #fff;
-    padding: 10px;
+    padding: 10px 15px;
     will-change: transform;
     transition-property: transform;
     transition-duration: .2s;
@@ -94,11 +94,13 @@
 .room .name {
     font-size: 1.45rem;
     font-weight: 600;
+    margin-right: auto;
 }
 
 .room .owner {
     color: #888;
     font-size: .98rem;
+    margin-right: auto;
 }
 
 .logout {
