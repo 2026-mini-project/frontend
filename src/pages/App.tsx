@@ -21,7 +21,7 @@ export default function Page() {
 
     useEffect(() => {
         (async () => {
-            const r = await REST("/");
+            const r = await REST("/", { "doNotRefresh": true });
             if (!r.success) {
                 alert("현재 서버를 사용할 수 없습니다.\n나중에 다시 시도 해주세요.");
                 return;
@@ -94,7 +94,8 @@ export default function Page() {
                         "method": "POST",
                         "data": {
                             "name": value
-                        }
+                        },
+                        "doNotRefresh": true
                     });
                     if (!r.success) throw new Error(r.data.message);
 
