@@ -42,6 +42,12 @@ export default function Page() {
             onSubmit={async (data, checked) => {
                 setShowForm(false);
                 try {
+                    if (!data) {
+                        alert("방 이름을 입력해주세요!");
+                        setShowForm(false);
+                        return;
+                    }
+                    
                     const r = await REST<APIRoom>("/rooms", {
                         "method": "POST",
                         "data": {
