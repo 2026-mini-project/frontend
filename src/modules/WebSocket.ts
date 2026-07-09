@@ -1,6 +1,6 @@
 import z from "zod";
 
-const SOCKET_URL = "wss://miniproj.pro203s.kr/socket/websocket";
+const SOCKET_URL = "wss://miniproj.pro203s.kr/socket";
 
 const ZodAPIUser = z.object({
     "id": z.string(),
