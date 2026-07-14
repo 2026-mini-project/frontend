@@ -5,29 +5,49 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
 import Form from '../../components/form';
 import REST from '../../modules/rest';
+import { useNavigate } from 'react-router-dom';
 
 export default function Page() {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [needToRedirect, setNeedToRedirect] = useState(false);
     const [rooms, setRooms] = useState<APIRoom[]>([]);
     const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
-        (async () => {
+        let cancelled = false;
+
+        const loadRooms = async () => {
             const r = await REST<APIRoom[]>("/rooms");
+            if (cancelled) return;
+
             if (!r.success) {
-                if (r.status === 404) {
-                    setLoading(false);
+                if (r.status === 401) {
+                    setNeedToRedirect(true);
                     return;
                 }
 
-                alert(r.data.message);
-                return window.history.back();
+                if (r.status !== 404) {
+                    alert(r.data.message);
+                }
+
+                setRooms([]);
+                return;
             }
 
             setRooms(r.data);
-            setLoading(false);
-        })();
+
+        };
+
+        void loadRooms().finally(() => {
+            if (!cancelled) {
+                setLoading(false);
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return <>
@@ -61,7 +81,7 @@ export default function Page() {
 
                     setLoading(true);
                     await new Promise(r => setTimeout(r, 480));
-                    window.location.href = `/rooms/${r.data.id}`;
+                    navigate(`/rooms/${r.data.id}`);
                 } catch (err) {
                     alert((err as Error).message);
                 }
@@ -72,7 +92,7 @@ export default function Page() {
         <Transition hide={loading} onAnimationEnd={() => {
             if (!needToRedirect) return;
 
-            window.location.href = "/";
+            navigate("/", { "replace": true });
         }} />
         <div className={css.container}>
             <div className={css.header}>
@@ -111,7 +131,7 @@ export default function Page() {
                     onClick={async () => {
                         setLoading(true);
                         await new Promise(r => setTimeout(r, 480));
-                        window.location.href = `/rooms/${v.id}`;
+                        navigate(`/rooms/${v.id}`);
                     }}
                 >
                     <span className={css.name}>{v.name}</span>

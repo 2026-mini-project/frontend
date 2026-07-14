@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import Transition from '../components/transition';
 import { animated, easings, useSpringValue } from '@react-spring/web';
 import REST from '../modules/rest.ts';
+import { useNavigate } from 'react-router-dom';
 
 export default function Page() {
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [isFetching, setIsFetching] = useState(false);
     const [needRedirect, setNeedRedirect] = useState(false);
@@ -30,7 +32,7 @@ export default function Page() {
             if (localStorage.getItem("sessionId")) {
                 const r2 = await REST("/rooms");
                 if (r2.success) {
-                    window.location.href = "/rooms";
+                    navigate("/rooms");
                     return;
                 }
             }
@@ -53,7 +55,7 @@ export default function Page() {
         <Transition hide={isLoading} onAnimationEnd={() => {
             if (!needRedirect) return;
 
-            location.href = "/rooms";
+            navigate("/rooms");
         }} />
         <animated.div className={css.form} style={{
             opacity,
