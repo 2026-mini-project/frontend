@@ -29,10 +29,6 @@ const sendSchema = z.union([
         z.literal("startGame")
     ]),
     z.tuple([
-        z.literal("error"),
-        z.object({ "message": z.string() })
-    ]),
-    z.tuple([
         z.literal("boardClick"),
         z.object({ "x": z.number(), "y": z.number() })
     ]),
@@ -71,7 +67,11 @@ const receiveSchema = z.union([
     z.tuple([
         z.literal("boardClick"),
         z.object({ "x": z.number(), "y": z.number() })
-    ])
+    ]),
+    z.tuple([
+        z.literal("error"),
+        z.object({ "message": z.string() })
+    ]),
 ]);
 
 type SendPayload = z.infer<typeof sendSchema>;

@@ -28,6 +28,7 @@
     align-items: center;
     color: #fff;
     padding: 0 15px;
+    justify-content: space-between;
 }
 
 .header .createRoom {

@@ -26,7 +26,6 @@ export default function Page() {
             }
 
             setRooms(r.data);
-
             setLoading(false);
         })();
     }, []);
@@ -47,7 +46,7 @@ export default function Page() {
                         setShowForm(false);
                         return;
                     }
-                    
+
                     const r = await REST<APIRoom>("/rooms", {
                         "method": "POST",
                         "data": {
@@ -60,10 +59,11 @@ export default function Page() {
                     });
                     if (!r.success) throw new Error(`방 만들기에 실패했습니다. (${r.status})`);
 
+                    setLoading(true);
+                    await new Promise(r => setTimeout(r, 480));
                     window.location.href = `/rooms/${r.data.id}`;
                 } catch (err) {
                     alert((err as Error).message);
-                    return window.location.reload();
                 }
             }}
             onCancel={() => setShowForm(false)}
@@ -81,13 +81,9 @@ export default function Page() {
                     <b>{localStorage.getItem("name")}</b>
                     <button className={css.logout} onClick={async () => {
                         try {
-                            const r = await REST("/session", {
+                            await REST("/session", {
                                 "method": "DELETE"
                             });
-                            if (!r.success) {
-                                alert(r.data.message);
-                                return;
-                            }
 
                             localStorage.removeItem("sessionId");
                             localStorage.removeItem("name");
@@ -115,7 +111,7 @@ export default function Page() {
                     onClick={async () => {
                         setLoading(true);
                         await new Promise(r => setTimeout(r, 480));
-                        window.location.href = `/rooms/${v.id}`
+                        window.location.href = `/rooms/${v.id}`;
                     }}
                 >
                     <span className={css.name}>{v.name}</span>
