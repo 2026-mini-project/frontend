@@ -43,6 +43,10 @@ const sendSchema = z.union([
         z.literal("flag"),
         z.object({ "x": z.number().int(), "y": z.number().int() })
     ]),
+    z.tuple([
+        z.literal("settings"),
+        z.object({ "mines": z.number().int(), "size": z.number().int() })
+    ])
 ]);
 
 const receiveSchema = z.union([
@@ -99,6 +103,9 @@ const receiveSchema = z.union([
         z.literal("flag"),
         z.object({ "x": z.number().int(), "y": z.number().int(), "by": z.string() })
     ]),
+    z.tuple([
+        z.literal("done")
+    ])
 ]);
 
 type SendPayload = z.infer<typeof sendSchema>;

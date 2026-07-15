@@ -9,7 +9,7 @@ import WebSocket from '../../../modules/WebSocket';
 import { animated, easings, useSprings } from '@react-spring/web';
 import Dialog, { type DialogButton } from '../../../components/Dialog';
 import { decodeBoard } from '../../../modules/base85';
-import { BOARD_SIZE, cellKey, getAdjacentMineCount, resolveBoard, resolveFlags, type BoardMove } from '../../../modules/minesweeper';
+import { cellKey, getAdjacentMineCount, resolveBoard, resolveFlags, type BoardMove } from '../../../modules/minesweeper';
 
 const getSessionId = (navigate: NavigateFunction) => {
     const sessionId = localStorage.getItem("sessionId");
@@ -51,6 +51,12 @@ function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitl
         "me": false,
         "rival": false
     });
+    const [settingsInput, setSettingsInput] = useState({
+        "size": "8",
+        "mines": "10"
+    });
+    const [settingsStatus, setSettingsStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+    const settingsPending = useRef(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -96,10 +102,16 @@ function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitl
             const r = await REST<APIRoom>("/rooms/" + id);
             if (!r.success) {
                 await new Promise<void>(resolve => {
-                    setDialogIcon(faClose);
+                    setDialogIcon(faBomb);
                     setDialogTitle("오류");
                     setDialogDescription(r.data.message);
-                    setDialogButtons([{ "name": "확인", "onClick": () => { setDialogOpen(false); resolve(); } }]);
+                    setDialogButtons([{
+                        "name": "확인", "onClick": async () => {
+                            setDialogOpen(false);
+                            await new Promise(r => setTimeout(r, 480));
+                            resolve();
+                        }
+                    }]);
                     setDialogClosable(false);
                     setDialogOpen(true);
                 });
@@ -124,6 +136,19 @@ function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitl
         const events = [
             socket.on("message", (data) => {
                 const [op, payload] = data;
+
+                if (op === "done" && settingsPending.current) {
+                    settingsPending.current = false;
+                    setSettingsStatus("saved");
+                    return;
+                }
+
+                if (op === "error" && settingsPending.current) {
+                    settingsPending.current = false;
+                    setSettingsStatus("failed");
+                    return;
+                }
+
                 if (op !== "ready" && op !== "cancelReady") return;
 
                 let key = sessionId === payload.id ? "me" : "rival";
@@ -149,7 +174,44 @@ function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitl
     const sessionId = localStorage.getItem("sessionId");
     const me = players.find(player => player.id === sessionId);
     const isRoomOwner = room.owner === me?.name;
-    const canStartGame = isRoomOwner && readyStatus["me"] && readyStatus["rival"];
+    const parsedSize = Number(settingsInput.size);
+    const parsedMines = Number(settingsInput.mines);
+    const settingsError = !Number.isInteger(parsedSize) || parsedSize < 2
+        ? "보드 크기는 2 이상의 정수여야 해요."
+        : !Number.isInteger(parsedMines) || parsedMines < 1
+            ? "지뢰 수는 1 이상의 정수여야 해요."
+            : parsedMines >= parsedSize * parsedSize
+                ? "지뢰 수는 전체 칸 수보다 적어야 해요."
+                : null;
+    const canStartGame = isRoomOwner
+        && readyStatus["me"]
+        && readyStatus["rival"]
+        && settingsStatus !== "saving";
+
+    const updateSettingsInput = (key: "size" | "mines", value: string) => {
+        setSettingsInput(current => ({ ...current, [key]: value }));
+        setSettingsStatus("idle");
+    };
+
+    const saveSettings = async () => {
+        if (!isRoomOwner || settingsError || settingsStatus === "saving") return;
+
+        settingsPending.current = true;
+        setSettingsStatus("saving");
+
+        try {
+            await socket.send([
+                "settings",
+                {
+                    "size": parsedSize,
+                    "mines": parsedMines
+                }
+            ]);
+        } catch {
+            settingsPending.current = false;
+            setSettingsStatus("failed");
+        }
+    };
 
     return <>
         <div className={css.container}>
@@ -206,13 +268,68 @@ function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitl
                         </div>
                     </div>
                 </div>
+                {isRoomOwner ? <div className={css.settingsPanel}>
+                    <div className={css.settingsHeading}>
+                        <span className={css.settingsTitle}>게임 설정</span>
+                        <span className={css.settingsDescription}>방장만 변경할 수 있어요.</span>
+                    </div>
+                    <div className={css.settingsFields}>
+                        <label className={css.settingField}>
+                            <span>보드 크기</span>
+                            <div className={css.settingInput}>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={settingsInput.size}
+                                    disabled={settingsStatus === "saving"}
+                                    onChange={event => updateSettingsInput("size", event.currentTarget.value)}
+                                />
+                                <span>× {settingsInput.size || "0"}</span>
+                            </div>
+                        </label>
+                        <label className={css.settingField}>
+                            <span>지뢰 수</span>
+                            <div className={css.settingInput}>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={settingsInput.mines}
+                                    disabled={settingsStatus === "saving"}
+                                    onChange={event => updateSettingsInput("mines", event.currentTarget.value)}
+                                />
+                                <span>개</span>
+                            </div>
+                        </label>
+                        <button
+                            type="button"
+                            className={css.saveSettings}
+                            disabled={Boolean(settingsError) || settingsStatus === "saving"}
+                            onClick={saveSettings}
+                        >
+                            <span>{settingsStatus === "saving" ? "적용 중..." : settingsStatus === "saved" ? "설정 완료" : "설정 적용"}</span>
+                        </button>
+                    </div>
+                    <span className={`${css.settingsMessage} ${settingsError || settingsStatus === "failed" ? css.settingsError : ""}`}>
+                        {settingsError
+                            ?? (settingsStatus === "saving"
+                                ? "서버에 설정을 적용하고 있어요..."
+                                : settingsStatus === "saved"
+                                    ? `${parsedSize} × ${parsedSize} 보드와 지뢰 ${parsedMines}개로 설정했어요.`
+                                    : settingsStatus === "failed"
+                                        ? "설정을 적용하지 못했어요. 다시 시도해 주세요."
+                                        : undefined)}
+                    </span>
+                </div> : null}
                 <div className={css.controls}>
                     <button
                         className={css.startGame}
                         onClick={() => canStartGame && socket.send(["startGame"])}
                         style={{
                             "pointerEvents": canStartGame ? "auto" : "none",
-                            "opacity": canStartGame ? 1 : 0.5
+                            "opacity": canStartGame ? 1 : 0.5,
+                            "backgroundColor": canStartGame ? "#4aff5f" : "#fff"
                         }}
                     >
                         <FontAwesomeIcon icon={faPlay} />
@@ -286,7 +403,10 @@ function GamePage({
         if (!encodedBoard) return { board: null, error: null };
 
         try {
-            return { board: decodeBoard(encodedBoard, BOARD_SIZE), error: null };
+            const decodedByteLength = (encodedBoard.length / 5) * 4;
+            const boardSize = Math.floor(Math.sqrt(decodedByteLength));
+
+            return { board: decodeBoard(encodedBoard, boardSize), error: null };
         } catch (error) {
             return {
                 board: null,
@@ -457,7 +577,6 @@ function GamePage({
 
             <div className={css.boardFrame}>
                 <div className={css.boardMeta}>
-                    <span>내가 연 안전 칸 <span className={css.boardMetaValue}>{resolved?.revealedSafeCount ?? 0}/{resolved?.safeCellCount ?? 0}</span></span>
                     <span>남은 지뢰 <span className={css.boardMetaValue}>{Math.max(0, mineCount - (resolvedFlags?.correctFlagCount ?? 0))}</span></span>
                 </div>
 
@@ -565,7 +684,7 @@ export default function Page() {
     const [winner, setWinner] = useState<APIUser>();
     const [gameErrorVersion, setGameErrorVersion] = useState(0);
 
-    const [dialogIcon, setDialogIcon] = useState(faClose);
+    const [dialogIcon, setDialogIcon] = useState(faBomb);
     const [dialogTitle, setDialogTitle] = useState("");
     const [dialogDescription, setDialogDescription] = useState("");
     const [dialogButtons, setDialogButtons] = useState<DialogButton[]>([]);
@@ -589,28 +708,28 @@ export default function Page() {
 
             events.push(socket.current.on("error", async () => {
                 await new Promise<void>(resolve => {
-                    setDialogIcon(faClose);
+                    setDialogIcon(faBomb);
                     setDialogTitle("오류");
                     setDialogDescription("서버와의 연결에 오류가 발생했어요.");
-                    setDialogButtons([{ "name": "확인", "onClick": () => { setDialogOpen(false); resolve() } }]);
+                    setDialogButtons([{ "name": "확인", "onClick": async () => { setDialogOpen(false); await new Promise(r => setTimeout(r, 480)); resolve() } }]);
                     setDialogClosable(false);
                     setDialogOpen(true);
                 });
-                window.location.href = "/";
+                navigate("/");
             }));
             events.push(socket.current.on("disconnect", async (ev) => {
                 if (ev.code === 1000) return;
                 await new Promise<void>(resolve => {
-                    setDialogIcon(faClose);
+                    setDialogIcon(faBomb);
                     setDialogTitle("오류");
                     setDialogDescription("서버와의 연결이 끊어졌습니다.");
-                    setDialogButtons([{ "name": "확인", "onClick": () => { setDialogOpen(false); resolve() } }]);
+                    setDialogButtons([{ "name": "확인", "onClick": async () => { setDialogOpen(false); await new Promise(r => setTimeout(r, 480)); resolve() } }]);
                     setDialogClosable(false);
                     setDialogOpen(true);
                 });
                 setTransition(true);
                 await new Promise(resolve => setTimeout(resolve, 480));
-                window.location.replace("/rooms");
+                navigate("/rooms");
             }));
             events.push(socket.current.on("connected", async () => {
                 await socket.current.send([
@@ -630,7 +749,7 @@ export default function Page() {
 
                     if (!isFatalError) {
                         setGameErrorVersion(version => version + 1);
-                        setDialogIcon(faClose);
+                        setDialogIcon(faBomb);
                         setDialogTitle("알림");
                         setDialogDescription(payload.message);
                         setDialogButtons([{
@@ -643,17 +762,20 @@ export default function Page() {
                     }
 
                     await new Promise<void>(resolve => {
-                        setDialogIcon(faClose);
+                        setDialogIcon(faBomb);
                         setDialogTitle("오류");
                         setDialogDescription(payload.message);
-                        setDialogButtons([{ "name": "확인", "onClick": () => {
-                            setDialogOpen(false);
-                            resolve();
-                        } }]);
+                        setDialogButtons([{
+                            "name": "확인", "onClick": async () => {
+                                setDialogOpen(false);
+                                await new Promise(r => setTimeout(r, 480));
+                                resolve();
+                            }
+                        }]);
                         setDialogClosable(false);
                         setDialogOpen(true);
                     });
-                    window.history.back();
+                    navigate("/rooms");
                     return;
                 }
 

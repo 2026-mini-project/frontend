@@ -76,7 +76,7 @@
 }
 
 .players {
-    margin: 50px;
+    margin: 36px 50px 24px;
     gap: 5rem;
     display: flex;
     flex-direction: row;
@@ -170,6 +170,116 @@
     margin-right: 2px;
 }
 
+.settingsPanel {
+    width: min(100%, 560px);
+    padding: 16px;
+    color: #fff;
+    border: #ffffff77 solid 1.5px;
+    border-radius: 15px;
+    background-color: #0e0e0e;
+    box-shadow: 8px 8px 35px rgba(0, 0, 0, 0.35);
+}
+
+.settingsHeading {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 13px;
+}
+
+.settingsTitle {
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.settingsDescription {
+    color: #ffffff80;
+    font-size: .78rem;
+}
+
+.settingsFields {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 10px;
+}
+
+.settingField {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #ffffffb8;
+    font-size: .8rem;
+}
+
+.settingInput {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    color: #ffffffa8;
+    border: 1px solid #ffffff36;
+    border-radius: 7px;
+    background-color: #181818;
+}
+
+.settingInput:focus-within {
+    border-color: #4aff5f;
+}
+
+.settingInput input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 9px;
+    color: #fff;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: .95rem;
+    font-weight: 700;
+}
+
+.settingInput span {
+    flex: none;
+    padding-right: 9px;
+    white-space: nowrap;
+}
+
+.saveSettings {
+    height: 38px;
+    padding: 0 14px;
+    color: #101010;
+    border: 0;
+    border-radius: 7px;
+    background-color: #4aff5f;
+    cursor: pointer;
+    font-weight: 700;
+    transition: opacity .2s, transform .2s;
+}
+
+.saveSettings:not(:disabled):hover {
+    transform: translateY(-2px);
+}
+
+.saveSettings:disabled {
+    cursor: default;
+    opacity: .45;
+}
+
+.settingsMessage {
+    display: block;
+    min-height: 16px;
+    margin-top: 9px;
+    color: #ffffff80;
+    font-size: .75rem;
+}
+
+.settingsError {
+    color: #ff8585;
+}
+
 .controls {
     margin-top: 25px;
     display: flex;
@@ -179,7 +289,6 @@
 
 .startGame {
     border-radius: 5px;
-    background-color: #4aff5f;
     border: none;
     padding: 10px 14px;
     cursor: pointer;
@@ -390,18 +499,16 @@
     padding: 0;
     color: #fff;
     border: 1px solid #ffffff36;
-    border-radius: clamp(4px, .7vw, 8px);
-    background: linear-gradient(145deg, #393939, #292929);
-    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .08), 0 2px 4px rgba(0, 0, 0, .35);
+    border-radius: 5px;
+    background: #1e1e1e;
     cursor: pointer;
-    transition: transform .12s, background-color .15s, border-color .15s, box-shadow .15s;
+    transition: background-color .15s, border-color .15s, box-shadow .15s;
 }
 
 .boardCell:not(:disabled):hover {
     z-index: 1;
     border-color: #ffffff85;
     background: #414141;
-    transform: translateY(-2px);
 }
 
 .boardCell:focus-visible {
@@ -573,6 +680,43 @@
 
     .header .leaveRoom span {
         display: none;
+    }
+
+    .center {
+        justify-content: flex-start;
+        overflow: auto;
+        padding-top: 24px;
+    }
+
+    .players {
+        width: 100%;
+        margin: 0 0 18px;
+        gap: 12px;
+    }
+
+    .playerContainer {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .player {
+        min-width: 0;
+    }
+
+    .circles {
+        display: none;
+    }
+
+    .settingsFields {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .saveSettings {
+        grid-column: 1 / -1;
+    }
+
+    .controls {
+        padding-bottom: 12px;
     }
 
     .gameCenter {

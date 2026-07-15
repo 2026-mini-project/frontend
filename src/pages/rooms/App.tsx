@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Transition from '../../components/transition';
 import css from './App.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClose, faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faBomb, faDoorOpen, faPlay } from '@fortawesome/free-solid-svg-icons';
 import Form from '../../components/form';
 import REST from '../../modules/rest';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ export default function Page() {
     const [rooms, setRooms] = useState<APIRoom[]>([]);
     const [showForm, setShowForm] = useState(false);
 
-    const [dialogIcon, setDialogIcon] = useState(faClose);
+    const [dialogIcon, setDialogIcon] = useState(faBomb);
     const [dialogTitle, setDialogTitle] = useState("");
     const [dialogDescription, setDialogDescription] = useState("");
     const [dialogButtons, setDialogButtons] = useState<DialogButton[]>([]);
@@ -36,7 +36,7 @@ export default function Page() {
                 }
 
                 if (r.status !== 404) {
-                    setDialogIcon(faClose);
+                    setDialogIcon(faBomb);
                     setDialogTitle("오류");
                     setDialogDescription(r.data.message);
                     setDialogButtons([{ "name": "확인", "onClick": () => { navigate("/") } }]);
@@ -85,7 +85,7 @@ export default function Page() {
                 try {
                     if (!data) {
                         setShowForm(false);
-                        setDialogIcon(faClose);
+                        setDialogIcon(faBomb);
                         setDialogTitle("방 만들기");
                         setDialogDescription("방 이름을 입력해주세요!");
                         setDialogButtons([{ "name": "확인", "onClick": () => { setDialogOpen(false) } }]);
@@ -110,7 +110,7 @@ export default function Page() {
                     await new Promise(r => setTimeout(r, 480));
                     navigate(`/rooms/${r.data.id}`);
                 } catch (err) {
-                    setDialogIcon(faClose);
+                    setDialogIcon(faBomb);
                     setDialogTitle("오류");
                     setDialogDescription(err instanceof Error ? err.message : String(err ?? "Unknown Error"));
                     setDialogButtons([{ "name": "확인", "onClick": () => { navigate("/") } }]);
@@ -145,7 +145,7 @@ export default function Page() {
                             setLoading(true);
                             setNeedToRedirect(true);
                         } catch (err) {
-                            setDialogIcon(faClose);
+                            setDialogIcon(faBomb);
                             setDialogTitle("오류");
                             setDialogDescription(err instanceof Error ? err.message : String(err ?? "Unknown Error"));
                             setDialogButtons([{ "name": "확인", "onClick": () => { navigate("/") } }]);
