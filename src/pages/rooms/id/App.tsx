@@ -11,6 +11,17 @@ import Dialog, { type DialogButton } from '../../../components/Dialog';
 import { decodeBoard } from '../../../modules/base85';
 import { BOARD_SIZE, cellKey, getAdjacentMineCount, resolveBoard, resolveFlags, type BoardMove } from '../../../modules/minesweeper';
 
+const getSessionId = (navigate: NavigateFunction) => {
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+        navigate("/rooms");
+        return "";
+    }
+
+    return sessionId;
+};
+
+//#region PlayersPage
 type ScreenProps = {
     transition: (to: "players" | "game" | "show" | "hide", waitUntil?: () => Promise<any>) => any,
     socket: WebSocket,
@@ -20,16 +31,6 @@ type ScreenProps = {
     setDialogButtons: React.Dispatch<React.SetStateAction<DialogButton[]>>,
     setDialogClosable: React.Dispatch<React.SetStateAction<boolean>>,
     setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
-};
-
-const getSessionId = (navigate: NavigateFunction) => {
-    const sessionId = localStorage.getItem("sessionId");
-    if (!sessionId) {
-        navigate("/rooms");
-        return "";
-    }
-
-    return sessionId;
 };
 
 function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitle, setDialogButtons, setDialogDescription, setDialogClosable, setDialogOpen }: ScreenProps & { players: APIUser[] }) {
@@ -237,7 +238,9 @@ function PlayersPage({ transition, socket, players, setDialogIcon, setDialogTitl
         </div>
     </>;
 }
+//#endregion
 
+//#region GamePage
 type GamePageProps = ScreenProps & {
     players: APIUser[];
     encodedBoard?: string;
@@ -388,7 +391,7 @@ function GamePage({
         setDialogIcon(didWin ? faTrophy : faBomb);
         setDialogTitle(didWin ? "승리!" : "패배");
         setDialogDescription(didWin
-            ? "지뢰를 피하고 이번 게임에서 승리했어요."
+            ? "상대를 꺾으시고 승리하셨어요!"
             : `${winner.name} 님이 이번 게임에서 승리했어요.`
         );
         setDialogButtons([{
@@ -417,7 +420,7 @@ function GamePage({
             <div className={css.content}>
                 <div className={css.roomTitle}>
                     <span>방 이름:&nbsp;</span>
-                    <b>{room?.name ?? "불러오는 중..."}</b>
+                    <span className={css.roomName}>{room?.name ?? "불러오는 중..."}</span>
                 </div>
                 <div>
                     <span style={{ "opacity": 0.75, "fontSize": 15 }}>{localStorage.getItem("name")}</span>
@@ -428,16 +431,16 @@ function GamePage({
                 await transition("hide");
                 navigate("/rooms", { "replace": true });
             }}>
-                <FontAwesomeIcon icon={faDoorOpen} />
+                <span className={css.leaveRoomIcon}>🚪</span>
                 <span>방 나가기</span>
             </button>
         </div>
 
-        <main className={css.gameCenter}>
-            <section className={css.gameStatus} aria-live="polite">
+        <div className={css.gameCenter}>
+            <div className={css.gameStatus}>
                 <div className={`${css.gamePlayer} ${isMyTurn ? css.activePlayer : ""}`}>
                     <span className={css.playerLabel}>나</span>
-                    <strong>{players.find(player => player.id === sessionId)?.name ?? "나"}</strong>
+                    <span className={css.gamePlayerName}>{players.find(player => player.id === sessionId)?.name ?? "나"}</span>
                     <span>{myFlagCount}개 발견</span>
                 </div>
 
@@ -447,22 +450,20 @@ function GamePage({
 
                 <div className={`${css.gamePlayer} ${turnUserId === rival?.id && !isGameOver ? css.activePlayer : ""}`}>
                     <span className={css.playerLabel}>상대</span>
-                    <strong>{rival?.name ?? "상대"}</strong>
+                    <span className={css.gamePlayerName}>{rival?.name ?? "상대"}</span>
                     <span>{rivalFlagCount}개 발견</span>
                 </div>
-            </section>
+            </div>
 
-            <section className={css.boardFrame}>
+            <div className={css.boardFrame}>
                 <div className={css.boardMeta}>
-                    <span>내가 연 안전 칸 <b>{resolved?.revealedSafeCount ?? 0}/{resolved?.safeCellCount ?? 0}</b></span>
-                    <span>남은 지뢰 <b>{Math.max(0, mineCount - (resolvedFlags?.correctFlagCount ?? 0))}</b></span>
+                    <span>내가 연 안전 칸 <span className={css.boardMetaValue}>{resolved?.revealedSafeCount ?? 0}/{resolved?.safeCellCount ?? 0}</span></span>
+                    <span>남은 지뢰 <span className={css.boardMetaValue}>{Math.max(0, mineCount - (resolvedFlags?.correctFlagCount ?? 0))}</span></span>
                 </div>
 
                 {decoded.board && resolved ? <div
                     className={css.board}
                     style={{ "--board-size": decoded.board.length } as React.CSSProperties}
-                    role="grid"
-                    aria-label={`${decoded.board.length} × ${decoded.board.length} 지뢰찾기 보드`}
                 >
                     {decoded.board.map((row, y) => row.map((isMine, x) => {
                         const key = cellKey(x, y);
@@ -487,19 +488,9 @@ function GamePage({
 
                         return <button
                             type="button"
-                            role="gridcell"
                             key={key}
                             className={classes}
                             disabled={isRevealed || isFlagged || Boolean(winner)}
-                            aria-disabled={!isMyTurn || isGameOver || Boolean(pendingMove)}
-                            aria-label={isWrongFlag
-                                ? `${y + 1}행 ${x + 1}열 잘못된 깃발`
-                                : isFlagged
-                                    ? `${y + 1}행 ${x + 1}열 깃발`
-                                    : isRevealed
-                                        ? isMine ? `${y + 1}행 ${x + 1}열 지뢰` : `${y + 1}행 ${x + 1}열, 주변 지뢰 ${adjacentMines}개`
-                                        : `${y + 1}행 ${x + 1}열 닫힌 칸`
-                            }
                             onContextMenu={event => {
                                 event.preventDefault();
                                 if (!isMyTurn || isRevealed || isFlagged || isGameOver || pendingMove) return;
@@ -534,8 +525,8 @@ function GamePage({
                                 );
                             }}
                         >
-                            {showMine ? <img src="/mine.png" alt="" /> : null}
-                            {isFlagged ? <img src="/flag.png" alt="" /> : null}
+                            {showMine ? <span className={`${css.cellIcon} ${css.mineIcon}`} /> : null}
+                            {isFlagged ? <span className={`${css.cellIcon} ${css.flagIcon}`} /> : null}
                             {!showMine && !isFlagged && isRevealed && adjacentMines > 0 ? <span
                                 className={css.cellNumber}
                                 data-number={adjacentMines}
@@ -543,17 +534,19 @@ function GamePage({
                         </button>;
                     }))}
                 </div> : <div className={css.boardLoading}>
-                    <FontAwesomeIcon icon={faBomb} />
+                    <span className={css.boardLoadingIcon} />
                     <span>{decoded.error ? "보드를 불러오지 못했어요." : "보드를 만들고 있어요..."}</span>
                 </div>}
-            </section>
+            </div>
 
-            <p className={css.gameHint}>
-                내 차례에는 안전 칸을 계속 열 수 있어요. 우클릭 또는 Shift+클릭으로 깃발을 확정하면 턴이 넘어가며, 잘못된 깃발은 즉시 패배해요.
-            </p>
-        </main>
+            <div className={css.gameHint}>
+                내 차례에는 안전 칸을 계속 열 수 있어요. 우클릭으로 깃발을 확정하면 턴이 넘어가며, 잘못된 깃발은 즉시 패배해요.
+            </div>
+        </div>
     </div>;
 }
+
+//#endregion
 
 export default function Page() {
     const { id } = useParams() as { id: string };
