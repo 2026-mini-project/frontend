@@ -30,12 +30,19 @@ const sendSchema = z.union([
     ]),
     z.tuple([
         z.literal("boardClick"),
-        z.object({ "x": z.number(), "y": z.number() })
+        z.object({ "x": z.number().int(), "y": z.number().int() })
     ]),
     z.tuple([
-        z.literal("gameClear"),
-        z.object({ "winner": ZodAPIUser })
-    ])
+        z.literal("flag"),
+        z.object({ "x": z.number().int(), "y": z.number().int() })
+    ]),
+    z.tuple([
+        z.literal("gameClear")
+    ]),
+    z.tuple([
+        z.literal("flag"),
+        z.object({ "x": z.number().int(), "y": z.number().int() })
+    ]),
 ]);
 
 const receiveSchema = z.union([
@@ -62,15 +69,35 @@ const receiveSchema = z.union([
         ZodAPIUser
     ]),
     z.tuple([
-        z.literal("turn")
+        z.literal("turn"),
+        z.object({ "userId": z.string() })
+    ]),
+    z.tuple([
+        z.literal("gameStarted")
+    ]),
+    z.tuple([
+        z.literal("gameBoard"),
+        z.object({ "data": z.string() })
     ]),
     z.tuple([
         z.literal("boardClick"),
-        z.object({ "x": z.number(), "y": z.number() })
+        z.object({ "x": z.number().int(), "y": z.number().int(), "by": z.string() })
+    ]),
+    z.tuple([
+        z.literal("flag"),
+        z.object({ "x": z.number().int(), "y": z.number().int(), "by": z.string() })
+    ]),
+    z.tuple([
+        z.literal("gameClear"),
+        z.object({ "winner": ZodAPIUser })
     ]),
     z.tuple([
         z.literal("error"),
         z.object({ "message": z.string() })
+    ]),
+    z.tuple([
+        z.literal("flag"),
+        z.object({ "x": z.number().int(), "y": z.number().int(), "by": z.string() })
     ]),
 ]);
 

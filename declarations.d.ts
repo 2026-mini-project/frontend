@@ -15,7 +15,7 @@ declare global {
     type APIRoom = {
         "id": string,
         "name": string,
-        "owner": string, // SessionId임
+        "owner": string, // 방장 닉네임
         "full": boolean // 방이 꽉 찼는지 여부
     };
 }

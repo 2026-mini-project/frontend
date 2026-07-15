@@ -14,7 +14,7 @@ type RespFalse = {
 
 type Resp<T> = RespTrue<T> | RespFalse;
 
-const API_BASE = "/api";
+const API_BASE = "https://miniproj.pro203s.kr";
 const EXPIRES_IN = 3600;
 
 export default async function REST<T = any, D = any>(route: string, config?: Omit<AxiosRequestConfig<D>, "validateStatus" | "url"> & { "doNotRefresh"?: boolean }): Promise<Resp<T>> {
