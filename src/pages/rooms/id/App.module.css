@@ -96,6 +96,17 @@
     background-color: white;
 }
 
+.playerContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #fff;
+}
+
+.playerContainer > span {
+    margin: 0 auto;
+}
+
 .player {
     border-radius: 15px;
     background-color: #0e0e0e;
@@ -105,10 +116,14 @@
     border: #ffffff77 solid 1.5px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
     color: #fff;
     padding: 15px;
-    min-width: 180px;
+    min-width: 230px;
+
+    will-change: opacity;
+    transition-property: opacity;
+    transition-duration: .2s;
 }
 
 .player .name {
@@ -122,19 +137,34 @@
     border: #ffffff77 solid 1.5px;
     padding: 5px 7px;
     cursor: pointer;
-    will-change: transform;
-    transition-property: transform;
-    transition-duration: .2s;
+    transition-duration: .25s;
 }
 
+.cancelReady {
+    border-radius: 5px;
+    background-color: transparent;
+    border: #ffffff solid 1.5px;
+    padding: 5px 7px;
+    cursor: pointer;
+    transition-duration: .25s;
+}
+
+.cancelReady:hover,
 .ready:hover {
     transform: translateY(-5px);
 }
 
+.cancelReady span,
 .ready span {
     font-size: 1.01rem;
 }
 
+.cancelReady span,
+.cancelReady svg {
+    color: #fff;
+}
+
+.cancelReady svg,
 .ready svg {
     font-size: 1.01rem;
     margin-right: 2px;

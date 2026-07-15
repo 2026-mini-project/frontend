@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Transition from '../../../components/transition';
 import css from './App.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faClose, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import REST from '../../../modules/rest';
 import WebSocket from '../../../modules/WebSocket';
@@ -26,6 +26,11 @@ function PlayersPage({ transition, socket, players }: ScreenProps & { players: A
             "easing": easings.easeInOutSine
         }
     }));
+
+    const [readyStatus, setReadyStatus] = useState<Record<"me" | "rival", boolean>>({
+        "me": false,
+        "rival": false
+    });
 
     useEffect(() => {
         let cancelled = false;
@@ -58,7 +63,7 @@ function PlayersPage({ transition, socket, players }: ScreenProps & { players: A
             }
         };
 
-        void runPulse();
+        runPulse();
 
         return () => {
             cancelled = true;
@@ -87,10 +92,35 @@ function PlayersPage({ transition, socket, players }: ScreenProps & { players: A
     }, []);
 
     useEffect(() => {
+        const sessionId = localStorage.getItem("sessionId");
+        if (!sessionId) {
+            alert("세션을 찾을 수 없어요.");
+            navigate("/rooms");
+            return;
+        }
+
+        const events = [
+            socket.on("message", (data) => {
+                const [op, payload] = data;
+                if (op !== "ready" && op !== "cancelReady") return;
+
+                let key = sessionId === payload.id ? "me" : "rival";
+
+                setReadyStatus(v => ({
+                    ...v,
+                    [key]: op === "ready"
+                }));
+            })
+        ];
+
+        return () => events.forEach(e => e());
+    }, []);
+
+    useEffect(() => {
         if (!room || players.length <= 0 || hasShown.current) return;
 
         hasShown.current = true;
-        void transition("show");
+        transition("show");
     }, [players.length, room, transition]);
 
     if (!room || players.length <= 0) return null;
@@ -118,25 +148,56 @@ function PlayersPage({ transition, socket, players }: ScreenProps & { players: A
             </div>
             <div className={css.center}>
                 <div className={css.players}>
-                    <div className={css.player}>
-                        <span className={css.name}>{players[0].name}</span>
-                        <button className={css.ready}>
-                            <FontAwesomeIcon icon={faCheck} />
-                            <span>준비</span>
-                        </button>
+                    <div className={css.playerContainer}>
+                        <span>나</span>
+                        <div className={css.player}>
+                            <span className={css.name}>{players[0].name}</span>
+                            {readyStatus["me"] ? <button className={css.cancelReady} onClick={() => {
+                                const sessionId = localStorage.getItem("sessionId");
+                                if (!sessionId) {
+                                    alert("세션을 찾을 수 없어요.");
+                                    navigate("/rooms");
+                                    return;
+                                }
+                                socket.send(["cancelReady"]);
+                            }}>
+                                <FontAwesomeIcon icon={faClose} />
+                                <span>준비 취소</span>
+                            </button> : <button className={css.ready} onClick={() => {
+                                const sessionId = localStorage.getItem("sessionId");
+                                if (!sessionId) {
+                                    alert("세션을 찾을 수 없어요.");
+                                    navigate("/rooms");
+                                    return;
+                                }
+                                socket.send(["ready"]);
+                            }}>
+                                <FontAwesomeIcon icon={faCheck} />
+                                <span>준비</span>
+                            </button>}
+                        </div>
                     </div>
                     <div className={css.circles}>
                         <animated.div className={css.circle} style={ellipsePulses[0]} />
                         <animated.div className={css.circle} style={ellipsePulses[1]} />
                         <animated.div className={css.circle} style={ellipsePulses[2]} />
                     </div>
-                    <div className={css.player} style={{ "opacity": players[1]?.name ? 1 : 0.5, "pointerEvents": "none" }}>
-                        <span className={css.name}>{players[1]?.name ?? "대기 중..."}</span>
-                        <button className={css.ready}>
-                            <FontAwesomeIcon icon={faCheck} />
-                            <span>준비</span>
-                        </button>
+                    <div className={css.playerContainer}>
+                        <span>상대</span>
+                        <div className={css.player} style={{ "opacity": players[1]?.name ? 1 : 0.5, "pointerEvents": "none" }}>
+                            <span className={css.name}>{players[1]?.name ?? "대기 중..."}</span>
+                            {readyStatus["rival"] ? <button className={css.ready} style={{ "opacity": 0.5 }}>
+                                <FontAwesomeIcon icon={faCheck} />
+                                <span>준비됨</span>
+                            </button> : <button className={css.ready} style={{ "opacity": 0.5 }}>
+                                <FontAwesomeIcon icon={faClose} />
+                                <span>준비 안됨</span>
+                            </button>}
+                        </div>
                     </div>
+                </div>
+                <div className={css.controls}>
+                    
                 </div>
             </div>
         </div>
@@ -161,8 +222,6 @@ export default function Page() {
                 window.location.href = "/";
                 return;
             }
-
-            socket.current = new WebSocket();
 
             socket.current.on("error", () => {
                 alert("서버와의 연결에 오류가 발생했습니다.");
@@ -207,7 +266,7 @@ export default function Page() {
                 }
 
                 if (op === "joined") {
-                    setPlayers(payload);
+                    setPlayers(payload.sort(a => a.id === sessionId ? -1 : 0));
                     return;
                 }
 
