@@ -4,6 +4,8 @@ import Transition from '../components/transition';
 import { animated, easings, useSpringValue } from '@react-spring/web';
 import REST from '../modules/rest.ts';
 import { useNavigate } from 'react-router-dom';
+import Dialog from '../components/Dialog/index.tsx';
+import { faLinkSlash } from '@fortawesome/free-solid-svg-icons';
 
 export default function Page() {
     const navigate = useNavigate();
@@ -13,6 +15,8 @@ export default function Page() {
     const [error, setError] = useState<string>();
     const inputRef = useRef<HTMLInputElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
+
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     const opacity = useSpringValue(1, {
         "config": {
@@ -25,7 +29,7 @@ export default function Page() {
         (async () => {
             const r = await REST("/", { "doNotRefresh": true });
             if (!r.success) {
-                alert("현재 서버를 사용할 수 없습니다.\n나중에 다시 시도 해주세요.");
+                setDialogOpen(true);
                 return;
             }
 
@@ -52,6 +56,17 @@ export default function Page() {
     }, [isFetching]);
 
     return <>
+        <Dialog
+            icon={faLinkSlash}
+            title="서버 오류"
+            description='현재 서버를 사용할 수 없습니다.\n나중에 다시 시도해주세요.'
+            buttons={[{
+                "name": "확인",
+                "onClick": () => setDialogOpen(false)
+            }]}
+            onCancel={() => { }}
+            show={dialogOpen}
+        />
         <Transition hide={isLoading} onAnimationEnd={() => {
             if (!needRedirect) return;
 

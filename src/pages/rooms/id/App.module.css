@@ -169,3 +169,62 @@
     font-size: 1.01rem;
     margin-right: 2px;
 }
+
+.controls {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+}
+
+.startGame {
+    border-radius: 5px;
+    background-color: #4aff5f;
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition-duration: .25s;
+
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+}
+
+.startGame:hover {
+    transform: translateY(-5px);
+}
+
+.startGame span,
+.startGame svg {
+    color: #000;
+    font-size: 1.1rem;
+}
+
+.invite {
+    border-radius: 5px;
+    background-color: #ffffff;
+    border: none;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition-duration: .25s;
+
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+}
+
+.invite:hover {
+    transform: translateY(-5px);
+}
+
+.invite span,
+.invite svg {
+    color: #000;
+    font-size: 1.1rem;
+}
